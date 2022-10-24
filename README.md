@@ -1,5 +1,7 @@
 # Remote Plot
 
+[![PyPI version](https://badge.fury.io/py/remote-plot.svg)](https://badge.fury.io/py/remote-plot)
+
 Developing python code on a remote machine can get frustrating when you want to visualize your results.
 Instead of relying on a remote screen / X11 forwarding / VNC, Remote Plot opens your plots in a local server.
 It's a super simple library that replicates the API of matplotlib with a web renderer.
