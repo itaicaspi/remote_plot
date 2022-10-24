@@ -14,7 +14,8 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
     name="remote_plot",
-    version="1.0.0",
+    packages=['remote_plot'],
+    version="1.0.1",
     description="Like matplotlib but renders in a local server so you can work remotely",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -38,9 +39,8 @@ setup(
         "Programming Language :: Python :: 3 :: Only",
     ],
     keywords="matplotlib, plotting, remote development",
-    packages=find_packages(where="src"),
     python_requires=">=3.7, <4",
-    install_requires=["pillow", "numpy", "matplotlib"],
+    install_requires=["pillow", "numpy", "matplotlib", "requests"],
     extras_require={  # Optional
         "dev": [],
         "test": [],
