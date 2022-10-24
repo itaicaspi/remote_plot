@@ -5,7 +5,7 @@
 Developing python code on a remote machine can get frustrating when you want to visualize your results.
 Instead of relying on a remote screen / X11 forwarding / VNC, Remote Plot opens your plots in a local server.
 It's a super simple library that replicates the API of matplotlib with a web renderer.
-All you need to do is forward the port to your machine. If your using VS Code, it will take of it for you.
+All you need to do is forward the port to your machine. If your using VS Code, it will take care of it for you.
 
 ## Getting started
 
