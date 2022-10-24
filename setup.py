@@ -40,7 +40,7 @@ setup(
     keywords="matplotlib, plotting, remote development",
     packages=find_packages(where="src"),
     python_requires=">=3.7, <4",
-    install_requires=["pillow", "numpy"],
+    install_requires=["pillow", "numpy", "matplotlib"],
     extras_require={  # Optional
         "dev": [],
         "test": [],
