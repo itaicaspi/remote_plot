@@ -15,7 +15,7 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 setup(
     name="remote_plot",
     packages=['remote_plot'],
-    version="1.0.1",
+    version="1.1.0",
     description="Like matplotlib but renders in a local server so you can work remotely",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -23,11 +23,7 @@ setup(
     author="Itai Caspi",
     author_email="itaicaspi@gmail.com",
     classifiers=[
-        # How mature is this project? Common values are
-        #   3 - Alpha
-        #   4 - Beta
-        #   5 - Production/Stable
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Topic :: Software Development :: Build Tools",
         "License :: OSI Approved :: MIT License",

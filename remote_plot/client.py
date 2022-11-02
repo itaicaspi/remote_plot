@@ -17,6 +17,8 @@ class PlotClient:
         self.handler_class = ImageHandler
         self.httpd = None
         self.port = port
+        self.figure = None
+        self.axes = None
 
     @property
     def port(self):
@@ -41,15 +43,20 @@ class PlotClient:
         if self.httpd is None:
             self.start_server()
 
-    def _matplotlib_figure(self, plot_func: Callable):
+    def _matplotlib_figure(self, plot_func: Callable, is_3d=False, clear_figure=True):
         self.maybe_start_server()
 
-        f = plt.figure(1)
-        f.clf()
-        ax = f.add_subplot(111)
-        plot_func(ax)
+        if self.figure is None or clear_figure:
+            if self.figure:
+                plt.close(self.figure)
+            if is_3d:
+                self.figure = plt.figure()
+                self.axes = self.figure.add_subplot(111, projection='3d')
+            else:
+                self.figure, self.axes = plt.subplots()
+        plot_func(self.axes)
         data = BytesIO()
-        f.savefig(data, format="png")
+        self.figure.savefig(data, format="png")
         data.seek(0)
         r = requests.post(f"http://localhost:{self.port}", data=data)
 
@@ -64,7 +71,7 @@ class PlotClient:
         data.seek(0)
         r = requests.post(f"http://localhost:{self.port}", data=data)
 
-    def __getattr__(self, __name: str) -> Any:
+    def __getattr__(self, name: str) -> Any:
         matplotlib_attributes = [
             'imshow', 'plot', 'scatter', 'bar', 'stem', 'step', 'fill_between', 
             'stackplot', 'hist', 'boxplot', 'errorbar', 'violinplot', 'eventplot',
@@ -72,5 +79,14 @@ class PlotClient:
             'triplot', 'pcolormesh', 'contour', 'contourf', 'barbs', 'quiver',
             'streamplot'
         ]
-        if __name in matplotlib_attributes:
-            return lambda *args, **kwargs: self._matplotlib_figure(lambda ax: getattr(ax, __name)(*args, **kwargs))
+
+        matplotlib_attributes_3d = [
+            'plot_surface', 'plot_wireframe', 'plot_trisurf', 'scatter3D', 'bar3D',
+            'contour3D', 'quiver3D', 'streamplot3D'
+        ]
+
+        if name in matplotlib_attributes:
+            return lambda *args, **kwargs: self._matplotlib_figure(lambda ax: getattr(ax, name)(*args, **kwargs), clear_figure=kwargs.pop("clear_figure", True))
+
+        if name in matplotlib_attributes_3d:
+            return lambda *args, **kwargs: self._matplotlib_figure(lambda ax: getattr(ax, name.replace("3D", ""))(*args, **kwargs), is_3d=True, clear_figure=kwargs.pop("clear_figure", True))
