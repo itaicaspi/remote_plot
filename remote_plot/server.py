@@ -40,18 +40,32 @@ template = """
         <head>
             <title>Remote Plot</title>
             <script>
+            async function fetchWithTimeout(resource, options = {{}}) {{
+                const {{ timeout = 3000 }} = options;
+                
+                const controller = new AbortController();
+                const id = setTimeout(() => controller.abort(), timeout);
+                const response = await fetch(resource, {{
+                    ...options,
+                    signal: controller.signal  
+                }});
+                clearTimeout(id);
+                return response;
+            }}
+            const pollInterval = {};
             const poll = () => {{
-                fetch('/poll?token={}').then((response) => {{
+                fetchWithTimeout('/poll?token={}', {{timeout: 3000}}).then((response) => {{
                     if (response.status == 200) {{
-                        setTimeout(poll, 1000);
+                        setTimeout(poll, pollInterval);
                     }} else {{
                         window.location.reload(1);
                     }}
                 }}).catch(() => {{
-                    window.location.reload(1);
+                    console.log("Error polling server");
+                    setTimeout(poll, pollInterval);
                 }});
             }}
-            setTimeout(poll, 1000);
+            setTimeout(poll, pollInterval);
             </script>
         </head>
         <body>
@@ -64,6 +78,7 @@ class ImageHandler(http.server.BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.0"
 
     def do_GET(self):
+        poll_interval = 100
         if self.path.startswith('/poll'):
             # get token query param
             token = int(self.path.split('?token=')[1])
@@ -80,7 +95,7 @@ class ImageHandler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
             token = self.server.SHARED['token']
             src = base64.b64encode(self.server.SHARED['image']).decode('utf-8')
-            message = template.format(token, src)
+            message = template.format(poll_interval, token, src)
             self.wfile.write(message.encode('utf-8'))
 
     def do_POST(self):
