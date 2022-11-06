@@ -56,6 +56,8 @@ plt.grid(True)
 plt.show()
 ```
 
+![plot](https://matplotlib.org/stable/_images/sphx_glr_pyplot_008.png)
+
 ## API
 
 Remote plot is intended to act as a drop-in replacement to matplotlib. Because of this, it replicates the matplotlib API, which you can find [here](https://matplotlib.org/stable/plot_types/index).
