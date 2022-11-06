@@ -82,7 +82,7 @@ class ImageHandler(http.server.BaseHTTPRequestHandler):
         if self.path.startswith('/poll'):
             # get token query param
             token = int(self.path.split('?token=')[1])
-            if token == self.server.SHARED['token']:
+            if token == self.server.SHARED.get('token'):
                 self.send_response(200)
             else:
                 self.send_response(205)
@@ -93,10 +93,11 @@ class ImageHandler(http.server.BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-type", "text/html; charset=utf-8")
             self.end_headers()
-            token = self.server.SHARED['token']
-            src = base64.b64encode(self.server.SHARED['image']).decode('utf-8')
-            message = template.format(poll_interval, token, src)
-            self.wfile.write(message.encode('utf-8'))
+            token = self.server.SHARED.get('token', 0)
+            if self.server.SHARED.get('image') is not None:
+                src = base64.b64encode(self.server.SHARED.get('image')).decode('utf-8')
+                message = template.format(poll_interval, token, src)
+                self.wfile.write(message.encode('utf-8'))
 
     def do_POST(self):
         self.server.SHARED['image'] = self.rfile.read(int(self.headers["Content-Length"]))

@@ -2,6 +2,10 @@
 See:
 https://packaging.python.org/guides/distributing-packages-using-setuptools/
 https://github.com/pypa/sampleproject
+
+build and deplot to pypi:
+python setup.py sdist bdist_wheel
+python -m twine upload dist/*
 """
 
 from setuptools import setup, find_packages
@@ -15,7 +19,7 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 setup(
     name="remote_plot",
     packages=['remote_plot'],
-    version="1.1.0",
+    version="1.1.1",
     description="Like matplotlib but renders in a local server so you can work remotely",
     long_description=long_description,
     long_description_content_type="text/markdown",
