@@ -73,6 +73,7 @@ class PlotClient:
             self.figure()
         
         # call the plot function either on the figure or the axes
+        result = None
         if call_on_figure:
             self._axes = plot_func(self._figure)
         else:
@@ -97,10 +98,16 @@ class PlotClient:
     """
     Instantiate a new figure.
     """
-    def figure(self):
+    def figure(self, *args, **kwargs):
         if self._figure:
             plt.close(self._figure)
-        self._figure = plt.figure()
+        self._figure = plt.figure(*args, **kwargs)
+
+    """
+    Emulate matplotlib plt.subplots
+    """
+    def subplots(self):
+        return self, self
 
     """
     Show an image without going through matplotlib
@@ -155,6 +162,7 @@ class PlotClient:
         matplotlib_figure_attributes_map = {
             'subplots_adjust': 'subplots_adjust',
             'subplot': 'add_subplot',
+            'suptitle': 'suptitle',
         }
 
         # get the matplotlib function name and set the meta flags
