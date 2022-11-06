@@ -17,8 +17,9 @@ class PlotClient:
         self.handler_class = ImageHandler
         self.httpd = None
         self.port = port
-        self.figure = None
-        self.axes = None
+        self._figure = None
+        self._axes = None
+        self.auto_show = True
 
     @property
     def port(self):
@@ -29,6 +30,9 @@ class PlotClient:
         self._port = port
         self.server_class.address_family, self.addr = get_best_family(None, port)
 
+    """
+    Start the server in a background process.
+    """
     def start_server(self):
         self.httpd = self.server_class(self.addr, self.handler_class)
 
@@ -36,33 +40,69 @@ class PlotClient:
         self.server = Process(target=run_server, args=(self.httpd,))
         self.server.start()
 
+    """
+    Stop the server background process.
+    """
     def stop_server(self):
         if self.httpd is not None:
             self.httpd.shutdown()
         if self.server is not None:
             self.server.close()
 
+    """
+    Starts the server only if it is not already running.
+    """
     def maybe_start_server(self):
         if self.httpd is None:
             self.start_server()
 
-    def _matplotlib_figure(self, plot_func: Callable, is_3d=False, clear_figure=True):
+    """
+    Wraps a matplotlib plot function to display the plot in a browser.
+
+    Arguments:
+        plot_func: The matplotlib plot function to wrap.
+        is_3d: Whether the plot is a 3D plot.
+        clear_figure: Whether to clear the figure before plotting.
+        call_on_figure: Whether to call the plot function on the figure instead of the axes.
+    """
+    def _matplotlib_figure(self, plot_func: Callable, is_3d: bool=False, clear_figure: bool=True, call_on_figure: bool=False):
         self.maybe_start_server()
 
-        if self.figure is None or clear_figure:
-            if self.figure:
-                plt.close(self.figure)
-            if is_3d:
-                self.figure = plt.figure()
-                self.axes = self.figure.add_subplot(111, projection='3d')
-            else:
-                self.figure, self.axes = plt.subplots()
-        plot_func(self.axes)
+        # initialize the figure and axes
+        if self._figure is None or clear_figure:
+            self.figure()
+        
+        # call the plot function either on the figure or the axes
+        if call_on_figure:
+            self._axes = plot_func(self._figure)
+        else:
+            if self._axes is None:
+                self._axes = self._figure.add_subplot(111, projection='3d' if is_3d else None)
+            plot_func(self._axes)
+
+        if self.auto_show:
+            self.show()
+
+    """
+    Show the figure on the remote server
+    """
+    def show(self):
         data = BytesIO()
-        self.figure.savefig(data, format="png")
+        self._figure.savefig(data, format="png")
         data.seek(0)
         r = requests.post(f"http://localhost:{self.port}", data=data)
+    
+    """
+    Instantiate a new figure.
+    """
+    def figure(self):
+        if self._figure:
+            plt.close(self._figure)
+        self._figure = plt.figure()
 
+    """
+    Show an image without going through matplotlib
+    """
     def imshow_native(self, img):
         self.maybe_start_server()
 
@@ -74,6 +114,10 @@ class PlotClient:
         data.seek(0)
         r = requests.post(f"http://localhost:{self.port}", data=data)
 
+    """
+    Get an attribute of the plt module by mapping each name to a function that calls the 
+    corresponding function on the axes object or the figure object.
+    """
     def __getattr__(self, name: str) -> Any:
         matplotlib_attributes = [
             'imshow', 'plot', 'scatter', 'bar', 'stem', 'step', 'fill_between', 
@@ -88,8 +132,50 @@ class PlotClient:
             'contour3D', 'quiver3D', 'streamplot3D'
         ]
 
-        if name in matplotlib_attributes:
-            return lambda *args, **kwargs: self._matplotlib_figure(lambda ax: getattr(ax, name)(*args, **kwargs), clear_figure=kwargs.pop("clear_figure", True))
+        matplotlib_axes_attributes_map = {
+            'title': 'set_title',
+            'text': 'text',
+            'ylim': 'set_ylim',
+            'xlim': 'set_xlim',
+            'xlabel': 'set_xlabel',
+            'ylabel': 'set_ylabel',
+            'yscale': 'set_yscale',
+            'xscale': 'set_xscale',
+            'xticks': 'set_xticks',
+            'yticks': 'set_yticks',
+            'legend': 'legend',
+            'clf': 'clear',
+            'grid': 'grid',
+            'axis': 'axis',
+            'annotate': 'annotate'
+        }
 
-        if name in matplotlib_attributes_3d:
-            return lambda *args, **kwargs: self._matplotlib_figure(lambda ax: getattr(ax, name.replace("3D", ""))(*args, **kwargs), is_3d=True, clear_figure=kwargs.pop("clear_figure", True))
+        matplotlib_figure_attributes_map = {
+            'subplots_adjust': 'subplots_adjust',
+            'subplot': 'add_subplot',
+        }
+
+        # get the matplotlib function name and set the meta flags
+        call_on_figure = False
+        is_3d = name in matplotlib_attributes_3d
+        matplotlib_func_name = None
+        if name in matplotlib_attributes:
+            matplotlib_func_name = name
+        elif name in matplotlib_attributes_3d:
+            matplotlib_func_name = name.replace('3D', '')
+            is_3d = True
+        elif name in matplotlib_axes_attributes_map:
+            matplotlib_func_name = matplotlib_axes_attributes_map[name]
+        elif name in matplotlib_figure_attributes_map:
+            matplotlib_func_name = matplotlib_figure_attributes_map[name]
+            call_on_figure = True
+
+        # get a callable function for matplotlib
+        if matplotlib_func_name is not None:
+            return lambda *args, **kwargs: \
+                self._matplotlib_figure(
+                    lambda ax: getattr(ax, matplotlib_func_name)(*args, **kwargs),
+                    is_3d=is_3d,
+                    call_on_figure=call_on_figure,
+                    clear_figure=kwargs.pop("clear_figure", False)
+                )
