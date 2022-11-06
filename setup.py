@@ -19,7 +19,7 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 setup(
     name="remote_plot",
     packages=['remote_plot'],
-    version="1.1.1",
+    version="1.1.2",
     description="Like matplotlib but renders in a local server so you can work remotely",
     long_description=long_description,
     long_description_content_type="text/markdown",

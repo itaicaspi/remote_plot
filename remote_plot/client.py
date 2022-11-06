@@ -37,7 +37,10 @@ class PlotClient:
         self.server.start()
 
     def stop_server(self):
-        self.httpd.shutdown()
+        if self.httpd is not None:
+            self.httpd.shutdown()
+        if self.server is not None:
+            self.server.close()
 
     def maybe_start_server(self):
         if self.httpd is None:
