@@ -34,7 +34,7 @@ plt.plot([1, 2, 3], [4, 5, 6])
 
 ### A more advanced example
 
-Here's a more advnaced example taken from (the official matplotlib documentation)[https://matplotlib.org/stable/tutorials/introductory/pyplot.html#working-with-text]
+Here's a more advnaced example taken from [the official matplotlib documentation](https://matplotlib.org/stable/tutorials/introductory/pyplot.html#working-with-text)
 
 ```
 from remote_plot import plt
