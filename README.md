@@ -59,7 +59,7 @@ plt.show()
 ![plot](https://matplotlib.org/stable/_images/sphx_glr_pyplot_008.png)
 
 
-Check the (examples directory)[https://github.com/itaicaspi/remote_plot/examples] for more examples.
+Check the [examples directory](https://github.com/itaicaspi/remote_plot/examples) for more examples.
 
 
 ## API
