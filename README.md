@@ -32,9 +32,38 @@ from remote_plot import plt
 plt.plot([1, 2, 3], [4, 5, 6])
 ```
 
+### A more advanced example
+
+Here's a more advnaced example taken from (the official matplotlib documentation)[https://matplotlib.org/stable/tutorials/introductory/pyplot.html#working-with-text]
+
+```
+from remote_plot import plt
+import numpy as np
+
+mu, sigma = 100, 15
+x = mu + sigma * np.random.randn(10000)
+
+# the histogram of the data
+n, bins, patches = plt.hist(x, 50, density=True, facecolor='g', alpha=0.75)
+
+
+plt.xlabel('Smarts')
+plt.ylabel('Probability')
+plt.title('Histogram of IQ')
+plt.text(60, .025, r'$\mu=100,\ \sigma=15$')
+plt.axis([40, 160, 0, 0.03])
+plt.grid(True)
+plt.show()
+```
+
 ## API
 
-Remote plot replicates the matplotlib API, which you can find [here](https://matplotlib.org/stable/plot_types/index).
+Remote plot is intended to act as a drop-in replacement to matplotlib. Because of this, it replicates the matplotlib API, which you can find [here](https://matplotlib.org/stable/plot_types/index).
+
+
+By default, every call plot will automatically render the result (equivalent to calling `plt.show()` on matplotlib).
+This can make things a bit slow, so if you prefer to turn it off, set `plt.auto_show = False`, and use `plt.show()` as usual.
+
 
 It also supports native image displaying that can display numpy array or pillow images.
 ```

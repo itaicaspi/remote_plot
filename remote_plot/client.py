@@ -78,10 +78,12 @@ class PlotClient:
         else:
             if self._axes is None:
                 self._axes = self._figure.add_subplot(111, projection='3d' if is_3d else None)
-            plot_func(self._axes)
+            result = plot_func(self._axes)
 
         if self.auto_show:
             self.show()
+
+        return result
 
     """
     Show the figure on the remote server
