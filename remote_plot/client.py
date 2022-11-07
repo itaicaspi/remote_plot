@@ -18,6 +18,7 @@ class PlotClient:
         self.httpd = None
         self.port = port
         self._figure = None
+        self._all_axes = None
         self._axes = None
         self.auto_show = True
 
@@ -102,12 +103,32 @@ class PlotClient:
         if self._figure:
             plt.close(self._figure)
         self._figure = plt.figure(*args, **kwargs)
+        return self
+
+    @property
+    def canvas(self):
+        return self._figure.canvas
 
     """
     Emulate matplotlib plt.subplots
     """
-    def subplots(self):
+    def subplots(self, *args, **kwargs):
+        if len(args) > 0:
+            self._figure, self._all_axes = plt.subplots(*args, **kwargs)
+            self._axes = self._all_axes.flatten()[0]
         return self, self
+
+    def add_subplot(self, *args, **kwargs):
+        self._axes = self._figure.add_subplot(*args, **kwargs)
+        return self
+
+    """
+    Emulate getting a specific axis. This actually sets the current axis, and return the client.
+    """
+    def __getitem__(self, *args):
+        self._axes = self._all_axes[args[0]]
+        self._figure.sca(self._axes)
+        return self
 
     """
     Show an image without going through matplotlib
@@ -146,6 +167,8 @@ class PlotClient:
             'text': 'text',
             'ylim': 'set_ylim',
             'xlim': 'set_xlim',
+            'set_xlim': 'set_xlim',
+            'set_ylim': 'set_ylim',
             'xlabel': 'set_xlabel',
             'ylabel': 'set_ylabel',
             'yscale': 'set_yscale',
@@ -156,13 +179,18 @@ class PlotClient:
             'clf': 'clear',
             'grid': 'grid',
             'axis': 'axis',
-            'annotate': 'annotate'
+            'annotate': 'annotate',
+            'set': 'set',
+            'set_aspect': 'set_aspect',
+            'pcolormesh': 'pcolormesh',
+            'axvline': 'axvline',
         }
 
         matplotlib_figure_attributes_map = {
             'subplots_adjust': 'subplots_adjust',
             'subplot': 'add_subplot',
             'suptitle': 'suptitle',
+            'colorbar': 'colorbar'
         }
 
         # get the matplotlib function name and set the meta flags
